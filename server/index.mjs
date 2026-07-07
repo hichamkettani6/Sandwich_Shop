@@ -9,7 +9,6 @@ import crypto from 'crypto';
 
 import { initAuthentication, isAuthenticated, isAuthenticatedWith2FA, verifyTotpToken } from "./auth.mjs";
 import Database from "./database.mjs";
-import db_init from './db_init.mjs';
 
 
 /* init express */
@@ -126,25 +125,37 @@ function mapOrderTree(orders, sandwiches, allOptionals, allDressings) {
 
 // Get availability and menu info
 app.get('/api/menu', async (req, res) => {
-  const sizes = await db.getSizes()
-  const availability = sizes.map(s => ({
-    ...s,
-    available: s.daily_limit - s.confirmed_today,
-  }));
+  try {
+    const sizes = await db.getSizes()
+    const availability = sizes.map(s => ({
+      ...s,
+      available: s.daily_limit - s.confirmed_today,
+    }));
 
-  const ingredients = await db.getIngredients()
+    const ingredients = await db.getIngredients()
 
-  res.json({ sizes: availability, ingredients });
+    res.json({ sizes: availability, ingredients });
+  } catch (err) {
+    res.status(500).json({
+      error: 'Internal Server Error',
+    });
+  }
 });
 
 // Get current availability (for real-time checks during order building)
 app.get('/api/availability', async (req, res) => {
-  const sizes = await db.getSizes();
-  const availability = {};
-  for (const s of sizes) {
-    availability[s.id] = s.daily_limit - s.confirmed_today;
+  try {
+    const sizes = await db.getSizes();
+    const availability = {};
+    for (const s of sizes) {
+      availability[s.id] = s.daily_limit - s.confirmed_today;
+    }
+    res.json(availability);
+  } catch (err) {
+    res.status(500).json({
+      error: 'Failed to load availability',
+    });
   }
-  res.json(availability);
 });
 
 
@@ -218,14 +229,19 @@ app.post('/api/sessions/totp', isAuthenticated, async (req, res) => {
 });
 
 app.get('/api/sessions/current', isAuthenticated, (req, res) => {
-  const user = req.user
-  res.json({
-    id: user.id,
-    username: user.username,
-    credit: user.credit,
-    has2FA: !!user.totp_secret,
-    totpVerified: req.session.totpVerified || false,
-  });
+  try {
+    const user = req.user
+    res.json({
+      id: user.id,
+      username: user.username,
+      credit: user.credit,
+      has2FA: !!user.totp_secret,
+      totpVerified: req.session.totpVerified || false,
+    });
+  } catch (error) {
+    console.error("Error getting current session:", error);
+    res.status(500).json({error: 'Internal Server Error'});
+  }
 });
 
 app.delete('/api/sessions/current', isAuthenticated, (req, res) => {
