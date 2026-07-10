@@ -81,7 +81,7 @@ function SandwichConfigurator({
   const extraIngredients = sizeConfig ? Math.max(0, optCount - sizeConfig.included_ingredients) : 0;
   const unitPrice = sizeConfig ? sandwichPrice(sizeConfig, optCount) : 0;
   const atDressingLimit = !!(sizeConfig && selectedDressings.size >= sizeConfig.max_dressings);
-  const isValid = submitLabel === 'Save Changes' || !!(sizeId && mainIngredientId && breadId && (availability[sizeId] ?? 0) > 0);
+  const isValid = quantity && (submitLabel === 'Save Changes' || !!(sizeId && mainIngredientId && breadId && (availability[sizeId] ?? 0) > 0));
 
   function toggleOptional(id) {
     setSelectedOptionals(prev => {
@@ -267,7 +267,19 @@ function SandwichConfigurator({
                   <Button variant="outline-secondary" onClick={() => setQuantity(q => Math.max(1, q - 1))} disabled={quantity <= 1}>−</Button>
                   <Form.Control
                     value={quantity}
-                    readOnly
+                    onChange={e => {
+                      const value = e.target.value;
+
+                      // Allow empty while typing
+                      if (value === '')
+                        setQuantity('');
+
+                      const n = Number(value);
+                      if (n >= 1) {
+                        setQuantity(n);
+                      }
+                    }}
+                    onBlur={() => quantity === ''? setQuantity(1): setQuantity(quantity) }
                     className="text-center fw-bold"
                     style={{ width: 48 }}
                   />
