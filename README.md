@@ -1,5 +1,4 @@
 # Exam #2: "Sandwich"
-## Student: s344121 El KETTANI HICHAM
 
 ## React Client Application Routes
 

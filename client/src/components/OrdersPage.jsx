@@ -137,8 +137,6 @@ function OrdersPage() {
   }, []);
 
   async function handleDelete(orderId) {
-    if (!window.confirm('Delete this order? You will receive a 90% refund.'))
-      return;
     setDeletingId(orderId);
     setError(''); setMessage('');
     try {
