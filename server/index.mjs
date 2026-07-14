@@ -2,10 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import cors from 'cors';
 import { check, body, validationResult } from 'express-validator'; // validation middleware
-import session from 'express-session';
 import passport from 'passport';
-import { Strategy as LocalStrategy } from 'passport-local';
-import crypto from 'crypto';
 
 import { initAuthentication, isAuthenticated, isAuthenticatedWith2FA, verifyTotpToken } from "./auth.mjs";
 import Database from "./database.mjs";
